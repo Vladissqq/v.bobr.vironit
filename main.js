@@ -58,5 +58,23 @@ test.busy();
 
 
 
+function Queue () {
+    EventEmitter.call(this); 
+    
+    this.turn = 0;
+} 
+
+Queue.prototype = Object.create(EventEmitter.prototype);
+Queue.prototype.constructor = Queue;
+console.dir(Queue);
+
+Queue.prototype.changeTurn = function () {
+    
+    this.emit(this.turn);
+}
+
+
+
+
 console.dir(EventEmitter);
 console.log(test.count)
