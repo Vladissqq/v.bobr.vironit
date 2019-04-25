@@ -27,6 +27,7 @@ EventEmitter.prototype.on = function (eventName, fn) {
 
 function Atm() {
     EventEmitter.call(this);
+
     this.state = 'free';
     this.count = 0;
 
@@ -34,26 +35,17 @@ function Atm() {
 
 Atm.prototype = Object.create(EventEmitter.prototype);
 Atm.prototype.constructor = Atm;
-console.dir(Atm);
 
 Atm.prototype.setBusy = function () {
-    
-    setTimeout(() => {
-        this.state = 'busy';
-        this.emit('busy', this.state);
-        this.count++;
-        this.Queue.turn--;
-        
-        console.log(this.state);
-    }, 1000);
+    this.state = 'busy';
+    this.emit('busy', this.state);
+    this.count++;
+
 }
 
-Atm.prototype.setFree = function (min,max) {
-    setTimeout(() => {
-        this.state = 'free';
-        this.emit('free', this.state);
-        console.log(this.state);
-    },1000);
+Atm.prototype.setFree = function (min, max) {
+    this.state = 'free';
+    this.emit('free', this.state);
 }
 
 
@@ -68,7 +60,6 @@ function Queue() {
 
 Queue.prototype = Object.create(EventEmitter.prototype);
 Queue.prototype.constructor = Queue;
-console.dir(Queue);
 
 
 
@@ -86,8 +77,7 @@ App.prototype.changeTurn = function (min, max) {
     return setTimeout((
         () => {
             this.Queue.turn++;
-            console.log('turn++' + this.Queue.turn);
-            this.emit('changeTurn++', this.Queue.turn);
+            this.Queue.emit('changeTurn++', this.Queue.turn);
             this.changeTurn(min, max);
         }),
         App.prototype.rand(min, max));
@@ -98,7 +88,9 @@ App.prototype.rand = function (min, max) {
     return (max - min) * Math.random() + min;
 }
 
-
+App.prototype.remove = function () {
+    this.Queue.turn--;
+}
 
 
 
@@ -111,14 +103,34 @@ App.on('changeTurn--',()=>console.log('-1'));
  */
 
 const manager = new App();
-const Atm1 = new Atm();
-const queue = new Queue();
+
 
 
 manager.changeTurn(1000, 5000);
-manager.on('changeTurn++', () => console.log('Queue=' + manager.Queue.turn));
-manager.Atm.emit('free');
-manager.Atm.on('free',manager.Atm.setBusy);
-manager.Atm.on('busy',manager.Atm.setFree);
+manager.Queue.on('changeTurn++', () => {
+    start(2000,3000);
+});
+
+const start = function (min,max) {
+    if (manager.Queue.turn > 1) {
+        if (manager.Atm.state === 'free') {
+            manager.Atm.setBusy();
+            manager.remove();
+            setTimeout(() => {
+                setTimeout(() => {
+                    manager.Atm.setFree();
+                }, manager.rand(min,max));
+            }, 1000);
+        }
+    }
+}
 
 
+const logger = function(){
+    manager.Queue.on('changeTurn++',()=>console.log('В очереди '+manager.Queue.turn+'человек'));
+    manager.Atm.on('busy',()=>console.log('Банкомат занят'));
+    manager.Atm.on('free',()=>console.log('Банкомат свободен'));
+    manager.Atm.on('free',()=>console.log('Банкомат обслужил '+manager.Atm.count+'человек'));
+
+}
+logger();
