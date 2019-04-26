@@ -48,6 +48,14 @@ Atm.prototype.setFree = function (min, max) {
     this.emit('free', this.state);
 }
 
+Atm.prototype.setWait = function() {
+    this.state = 'wait';
+    this.emit('wait',this.state);
+}
+
+Atm.prototype.getState = function () {
+    return this.state;
+}
 
 
 
@@ -61,14 +69,18 @@ function Queue() {
 Queue.prototype = Object.create(EventEmitter.prototype);
 Queue.prototype.constructor = Queue;
 
-
+Queue.prototype.returnQueue = function(){
+    return this.turn;
+};
 
 function App() {
     EventEmitter.call(this);
     this.Atm = new Atm();
     this.Queue = new Queue();
+    this.atmTable = [];
 
-}
+
+};
 
 App.prototype = Object.create(EventEmitter.prototype);
 App.prototype.constructor = App;
@@ -81,56 +93,54 @@ App.prototype.changeTurn = function (min, max) {
             this.changeTurn(min, max);
         }),
         App.prototype.rand(min, max));
-}
+};
 
 App.prototype.rand = function (min, max) {
 
     return (max - min) * Math.random() + min;
-}
+};
 
 App.prototype.remove = function () {
     this.Queue.turn--;
-}
+};
 
+App.prototype.addAtm = function () {
+    const atm = new Atm();
+    this.atmTable.push(atm);
+};
 
+App.prototype.start = function (min, max) {
+    if (this.Queue.turn > 0) {
+        for (let i = 0; i < this.atmTable.length; i++) {
+            if (this.atmTable[i].getState() === 'free') {
+                this.atmTable[i].setBusy();
+                this.remove();
+                setTimeout(() => {
+                    setTimeout(this.atmTable[i].setFree(),
+                        1000);
+                }, 500);
+            }
+            if(this.Queue.returnQueue() === 0) break;
+        }
+    }
+};
 
-
-
-/* App.prototype.on('free',Atm.prototype.changeBusy);
-App.on('busy',Atm.prototype.free); 
-App.prototype.on('changeTurn++',()=>{});
-App.on('changeTurn--',()=>console.log('-1')); 
- */
+App.prototype.logger = function () {
+    this.Queue.on('changeTurn++', () => console.log('В очереди ' + this.Queue.turn + 'человек'));
+    for (let i = 0; i < this.atmTable.length; i++) {
+        this.atmTable[i].on('busy', () => console.log('Банкомат занят'));
+        this.atmTable[i].on('free', () => console.log('Банкомат свободен'));
+        this.atmTable[i].on('free', () => console.log('Банкомат обслужил ' + this.atmTable[i].count + 'человек'));
+    }
+};
 
 const manager = new App();
 
 
 
-manager.changeTurn(1000, 5000);
+manager.changeTurn(100, 4000);
+manager.addAtm();manager.addAtm();manager.addAtm();manager.addAtm();manager.addAtm();
 manager.Queue.on('changeTurn++', () => {
-    start(2000,3000);
+    manager.start(2000, 3000);
 });
-
-const start = function (min,max) {
-    if (manager.Queue.turn > 1) {
-        if (manager.Atm.state === 'free') {
-            manager.Atm.setBusy();
-            manager.remove();
-            setTimeout(() => {
-                setTimeout(() => {
-                    manager.Atm.setFree();
-                }, manager.rand(min,max));
-            }, 1000);
-        }
-    }
-}
-
-
-const logger = function(){
-    manager.Queue.on('changeTurn++',()=>console.log('В очереди '+manager.Queue.turn+'человек'));
-    manager.Atm.on('busy',()=>console.log('Банкомат занят'));
-    manager.Atm.on('free',()=>console.log('Банкомат свободен'));
-    manager.Atm.on('free',()=>console.log('Банкомат обслужил '+manager.Atm.count+'человек'));
-
-}
-logger();
+manager.logger();
