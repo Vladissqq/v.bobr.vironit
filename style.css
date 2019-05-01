@@ -1,10 +1,9 @@
-.container{
-    
+.container {
     display: flex;
     flex-direction: column;
 }
 
-.queue-count--container{
+.queue-count--container {
     margin: auto;
     display: flex;
     width: 50px;
@@ -14,30 +13,36 @@
     background-color: blueviolet;
 }
 
- .queue--count{
+.queue--count {
     margin: auto;
 }
 
-.atm--container{
+.atm--container {
     margin-top: 20px;
     display: flex;
     flex-wrap: wrap;
-    flex-direction: row; 
+    flex-direction: row;
 }
 
-.atm-item{
-    margin: auto;  
-    width: 50px;
+.atm-item {
+    margin: auto;
     height: 100px;
     border: 3px solid black;
     border-radius: 17px;
-    
 }
 
-.free{
+.free {
     background-color: green;
 }
 
-.busy{
+.busy {
     background-color: tomato;
+}
+
+.btn {
+    margin-top: 20px;
+}
+
+.btn--container {
+    display: flex;
 }
