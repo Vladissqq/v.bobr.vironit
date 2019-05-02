@@ -1,9 +1,11 @@
+
 import EventEmitter from './EventEmitter';
+import Person from './Person';
 
 export default function Queue() {
     EventEmitter.call(this);
   
-    this.turn = 0;
+    this.turn = [];
   
   }
   
@@ -11,15 +13,26 @@ export default function Queue() {
   Queue.prototype.constructor = Queue;
   
   Queue.prototype.returnQueue = function () {
-    return this.turn;
+    return this.turn.length;
   };
   
   Queue.prototype.addPerson = function addPerson() {
-    this.turn++;
-    this.emit('changeTurn', this.turn);
+    this.turn.push(this.personTimeMaker(1000,2000).next().value);
+    this.emit('changeTurn', this.turn.length);
   };
   
   Queue.prototype.removePerson = function removePerson() {
-    this.turn--;
-    this.emit('changeTrun', this.turn);
+    this.turn.splice(0,1);
+    this.emit('changeTrun', this.turn.length);
   }
+
+  Queue.prototype.personTimeMaker = function* personTimeMaker(min,max){
+  
+    while(true)
+      yield new Person(this.rand(min,max));
+  }
+
+  Queue.prototype.rand = function (min, max) {
+
+    return (max - min) * Math.random() + min;
+  };
