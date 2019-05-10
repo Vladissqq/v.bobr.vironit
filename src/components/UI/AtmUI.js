@@ -13,7 +13,6 @@ UIAtm.prototype.atmRender = function atmRender(atm) {
   const atmContainer = document.getElementsByClassName('atm--container');
   const atmItem = document.createElement('div');
   this.atm = atmItem;
-  this.count = atm.getCount();
   atmItem.setAttribute('class', 'atm-item free');
   atmItem.innerHTML = `       <h1>ATM</h1>
                   <div class="atm-item--count ">

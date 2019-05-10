@@ -17,7 +17,6 @@ test('on отписка от ненужной функции', () => {
   const handler2 = jest.fn();
   const unsubscribe = emitter.on('name', handler2);
   unsubscribe();
-
   expect(emitter.eventTable).not.toContain(handler2);
 });
 
