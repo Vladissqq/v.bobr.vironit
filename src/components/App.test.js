@@ -1,6 +1,8 @@
 
 import App from './App';
 
+jest.useFakeTimers();
+
 const app = new App();
 
 test('addAtm добавляет банкомат в atmTable atmTableUI', () => {
@@ -13,21 +15,19 @@ test('addAtm добавляет банкомат в atmTable atmTableUI', () => 
   expect(app.atmTableUI).toHaveLength(tableLenghtUI + 1);
 });
 
-jest.useFakeTimers();
 
 test('changeTurn ждет рандомное время', () => {
-  const timer = app.changeTurn;
-  timer();
-
-  expect(setTimeout).toHaveBeenCalledTimes(1);
-  expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), app.rand());
+  app.Queue.turn = [];
+  app.changeTurn(100, 200);
+  jest.advanceTimersByTime(1000);
+  expect(app.Queue.turn.length).not.toBe(0);
 });
 
 test('removeAtm удаляет из atmTable последний элемент', () => {
   app.addAtm();
   const tableLenght = app.atmTable;
   app.removeAtm();
-  expect(tableLenght + 1).toHaveLength(app.atmTable);
+  expect(tableLenght).toHaveLength(1);
 });
 
 test('addBtn проверяем ивент листинер', () => {
@@ -56,11 +56,55 @@ test('remBtn проверяем ивент листенер', () => {
   expect(app.removeAtm).toHaveBeenCalledTimes(1);
 });
 
-test('start меняет free на busy',() => {
-  app.atmTable = [];
-  app.addAtm();
-  app.Queue.turn = 5;
-  console.log(app.Queue.returnQueue());// undefined
+test('start меняет free на busy', () => {
+  expect(app.atmTable[0].state).toBe('free');
   app.start();
-  setTimeout((expect(app.atmTable[0].state).toBe('busy')), 2000);
+  jest.advanceTimersByTime(1500);
+  expect(app.atmTable[0].state).toBe('busy');
+});
+
+test('start find first free atm', () => {
+  app.Queue.addPerson();
+  app.addAtm();
+  app.atmTable.find = jest.fn();
+  app.start();
+  expect(app.atmTable.find).toHaveBeenCalledTimes(1);
+});
+
+test('begin', () => {
+  app.log.loggerQueue = jest.fn();
+  app.start = jest.fn();
+  app.begin();
+  app.Queue.emit('changeTurn');
+  expect(app.start).toHaveBeenCalledTimes(1);
+});
+
+test('perOrNo', () => {
+  app.Queue.turn = [];
+  app.perOrNo();
+  expect(app.perOrNo()).toBe(1000);
+  app.Queue.addPerson();
+  app.Queue.turn[0].personTime = 100;
+  app.perOrNo();
+  expect(app.perOrNo()).toBe(100);
+});
+
+test('addAtm вызываем сет из фри', () => {
+  app.addAtm();
+  app.atmTable[0].setBusy();
+  app.atmTable[0].setFree = jest.fn();
+
+  jest.advanceTimersByTime(1000);
+  expect(app.atmTable[0].setFree).toHaveBeenCalled();
+});
+
+test('addAtm тестим подписку на фри', () => {
+  document.body.innerHTML = "<div class='container'>  <div class='atm--container'></div></div>";
+  const app2 = new App();
+  app2.addAtm();
+  app2.atmTableUI[0].setFreeUI = jest.fn();
+  app2.atmTableUI[0].changeCounter = jest.fn();
+  app2.atmTable[0].setFree();
+  jest.advanceTimersByTime(1000);
+  expect(app2.atmTableUI[0].setFreeUI).toHaveBeenCalledTimes(1);
 });

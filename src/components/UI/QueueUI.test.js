@@ -1,11 +1,21 @@
 import UIQueue from './QueueUI';
+import Queue from '../Queue';
 
-const queue = new UIQueue();
+const q = new Queue();
+const queue = new UIQueue(q);
+
 
 test('queueUI рендерит счетчик', () => {
-  document.body.innerHTML = "<div class='container'><h1 class='queue--count'></h1></div>";
-  const q = {};
+  q.addPerson();
+  document.body.innerHTML = "<div class='container'><h1 id='queue--count'></h1></div>";
   q.returnQueue = jest.fn();
   queue.queueUI(q);
-  expect(document.getElementsByClassName('queue-count--container')[0]).toBeTruthy();
+  expect(q.returnQueue).toHaveBeenCalled();
+});
+
+test ('queueRender', () => {
+  queue.queueUI = jest.fn();
+  queue.queueRender();
+  q.addPerson();
+  expect(queue.queueUI).toHaveBeenCalled();
 });
